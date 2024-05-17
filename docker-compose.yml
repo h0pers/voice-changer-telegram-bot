@@ -11,14 +11,14 @@ services:
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
   db:
-    image: postgres:15-alpine
+    image: mysql:8
     env_file:
       - .env
     volumes:
-      - pgdata:/var/lib/postgresql/data
+       - my-db:/var/lib/mysql
     restart: on-failure
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "${MYSQL_PORT}:${MYSQL_PORT}"
   bot:
     build: .
     command: sh -c "python -m run"
@@ -30,4 +30,4 @@ services:
       - redis
 
 volumes:
-  pgdata:
+  my-db:

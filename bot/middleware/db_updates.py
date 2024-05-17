@@ -35,9 +35,12 @@ async def collect_user_data(message: Message) -> None:
                                    'first_name': message.from_user.first_name,
                                    'last_name': message.from_user.last_name,
                                    'is_premium': message.from_user.is_premium or False,
+                                   'language_code': message.from_user.language_code,
                                },
                                telegram_id=message.from_user.id
                                )
+        print((await get(session, User)).scalars().all())
+        print('asdasd')
         await session.commit()
 
 
@@ -51,6 +54,7 @@ async def collect_user_callback_data(query: CallbackQuery) -> None:
                                    'first_name': query.from_user.first_name,
                                    'last_name': query.from_user.last_name,
                                    'is_premium': query.from_user.is_premium or False,
+                                   'language_code': query.from_user.language_code,
                                },
                                telegram_id=query.from_user.id
                                )

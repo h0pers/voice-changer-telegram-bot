@@ -5,7 +5,7 @@ from bot.config import DB_URL
 
 engine = create_async_engine(DB_URL, echo=True)
 
-SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 
 
 class Base(AsyncAttrs, DeclarativeBase):

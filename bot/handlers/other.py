@@ -1,12 +1,11 @@
-from aiogram import types, Router
-from bot.middleware.db_updates import CollectData, CollectCallbackData
+from aiogram import Router, F
+
+from bot.filters.not_banned import NotBannedUser, NotBannedUserCallback
+
 
 other_router = Router()
 
-other_router.message.middleware(CollectData())
-other_router.callback_query.middleware(CollectCallbackData())
-
-
-@other_router.message()
-async def echo(message: types.Message) -> None:
-    await message.send_copy(chat_id=message.chat.id)
+other_router.message.filter(NotBannedUser())
+other_router.message.filter(F.chat.type == 'private')
+other_router.callback_query.filter(F.chat.type == 'private')
+other_router.callback_query.filter(NotBannedUserCallback())

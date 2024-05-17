@@ -11,7 +11,7 @@ class Reply:
         self.reply_buttons = buttons_list
 
     def get_markup(self, **kwargs) -> ReplyKeyboardMarkup:
-        return ReplyKeyboardMarkup(keyboard=self.reply_buttons, resize_keyboard=True, **kwargs)
+        return ReplyKeyboardMarkup(keyboard=self.reply_buttons, resize_keyboard=True, is_persistent=True, **kwargs)
 
 
 class ReplyButtonText:
