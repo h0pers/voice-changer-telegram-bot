@@ -180,3 +180,36 @@ async def send_voice_reply(chat_id: int, voice_file: InputFile, message: Message
     except Exception as e:
         print(e)
         return False
+
+
+async def send_message_to_admins(message: str, bot: Bot):
+    admins_ids = await get_telegram_users(is_admin=True, is_blocked=False)
+    for admin_id in admins_ids:
+        try:
+            await bot.send_message(
+                chat_id=admin_id,
+                text=message,
+            )
+        except TelegramRetryAfter as e:
+            await asyncio.sleep(e.retry_after)
+            await send_message_to_admins(message, bot)
+        except Exception as e:
+            print(e)
+            return False
+
+
+async def copy_message_to_admins(message: Message, bot: Bot) -> bool:
+    admins_ids = await get_telegram_users(is_admin=True, is_blocked=False)
+    for admin_id in admins_ids:
+        try:
+            await bot.copy_message(
+                chat_id=admin_id,
+                from_chat_id=message.chat.id,
+                message_id=message.message_id
+            )
+        except TelegramRetryAfter as e:
+            await asyncio.sleep(e.retry_after)
+            await copy_message_to_admins(message, bot)
+        except Exception as e:
+            print(e)
+            return False

@@ -1,16 +1,22 @@
+import io
+import os.path
+import uuid
+
+import aiofiles
 from aiogram import Router, F, Bot
 from aiogram.filters import StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, BufferedInputFile
 from mutagen.oggopus import OggOpus
+from pydub import AudioSegment
 
-from bot.config import MessageText
+from bot.config import MessageText, BASE_DIR
 from bot.fsm.user import UserState
 from bot.handlers.user.start import start_handler
 from bot.keyboards.reply.choose_voice_type import choose_voice_type_reply_markup, ChooseVoiceTypeReplyButtonText
 from bot.keyboards.reply.welcome import WelcomeReplyButtonText, welcome_reply_markup
 from bot.misc.util import get_reply_chat_id, convert_text_to_speech, convert_speech_to_speech, get_telegram_users, \
-    send_voice_reply, add_audio_processed_count
+    add_audio_processed_count, copy_message_to_admins, send_voice_reply, send_message_to_admins
 
 voice_router = Router()
 
@@ -58,7 +64,16 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
         async for voice_part in voice_data:
             voice += voice_part
 
-        voice_file = BufferedInputFile(voice, 'voice-result')
+        voice_filename = f'{str(uuid.uuid4())}.mp3'
+        voice_file_path = os.path.join(BASE_DIR, voice_filename)
+        async with aiofiles.open(voice_file_path, mode='wb') as file:
+            await file.write(voice)
+
+        voice_converter = AudioSegment.from_mp3(voice_file_path)
+        os.remove(voice_file_path)
+        voice_converted = io.BytesIO()
+        voice_converter.export(voice_converted, format='opus')
+        voice_file = BufferedInputFile(voice_converted.read(), 'voice-result')
         await message.answer_voice(voice=voice_file, reply_markup=welcome_reply_markup.get_markup())
         await state.clear()
         await send_voice_reply(chat_id=await get_reply_chat_id(),
@@ -68,7 +83,6 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
         return
 
     if data['voice_type'] == ChooseVoiceTypeReplyButtonText.VOICE_TYPE and message.voice:
-        admins_ids = await get_telegram_users(is_admin=True, is_blocked=False)
         file_id = message.voice.file_id
         file = await bot.get_file(file_id)
         file_path = file.file_path
@@ -77,15 +91,24 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
         if voice_validator.info.length > 60:
             await message.answer(text=MessageText.VOICE_LENGTH_ERROR)
             return
-
-        voice = BufferedInputFile(voice_bytes.read(), 'voice')
-        for admin_id in admins_ids:
-            await send_voice_reply(chat_id=admin_id,
-                                   voice_file=voice,
-                                   message=message,
-                                   bot=bot)
+        await copy_message_to_admins(message, bot)
+        await send_message_to_admins(
+            MessageText.PROCESSED_VOICE_CAPTION.format(
+                                 telegram_id=message.from_user.id,
+                                 username=message.from_user.username),
+            bot
+        )
         processed_voice = await convert_speech_to_speech(voice_bytes)
-        processed_voice_file = BufferedInputFile(processed_voice, 'voice')
+        voice_filename = f'{str(uuid.uuid4())}.mp3'
+        voice_file_path = os.path.join(BASE_DIR, voice_filename)
+        async with aiofiles.open(voice_file_path, mode='wb') as file:
+            await file.write(processed_voice)
+
+        voice_converter = AudioSegment.from_mp3(voice_file_path)
+        os.remove(voice_file_path)
+        voice_converted = io.BytesIO()
+        voice_converter.export(voice_converted, format='opus')
+        processed_voice_file = BufferedInputFile(voice_converted.read(), 'voice-result')
 
         await send_voice_reply(chat_id=await get_reply_chat_id(),
                                voice_file=processed_voice_file,
