@@ -1,5 +1,6 @@
 import os
 
+from pytz import timezone
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -17,6 +18,16 @@ REDIS_HOST = os.getenv('REDIS_HOST')
 DEFAULT_VOICE_MODEL = 'eleven_multilingual_v2'
 
 DEFAULT_VOICE_SPEECH_MODEL = 'eleven_multilingual_sts_v2'
+
+TIMEZONE = timezone(os.getenv('TIMEZONE'))
+
+DAILY_AUDIO_ATTEMPT = 5
+
+VOICE_CHARACTERS_MIN_REQUIRED = 500
+
+REFERRAL_INCOME = 3
+
+STRFTIME_DEFAULT_FORMAT = '%d.%m.%Y, %H:%M'
 
 
 class MessageText:
@@ -52,13 +63,15 @@ class MessageText:
     USER_ACCOUNT_STATS = '''
 <b>👨‍💼 Ваш личный кабинет</b>
 
-🚀 Telegram ID: {telegram_id}
+<b>🚀 Telegram ID:</b> {telegram_id}
+<b>🔖 Остаток голосовых сообщений:</b> {voice_attempt_left}
 
 <b>Администратор:</b> @imfckngkucenko
 
-👥 Пользователей в боте: {bot_users_amount}
+<b>⏳ За все время Вы записали:</b> {audio_processed_amount} голосовых
 
-⏳ За все время Вы записали: {audio_processed_amount} голосовых
+<b>Лимит голосовых сообщений обновляется каждый день.
+Получить дополнительные голосовые можно через реферальную систему.</b>    
 '''
     VOICE_API_CHARACTERS_LEFT = '''
 <b>Лимит символов на API:</b> {characters_limit}
@@ -77,3 +90,32 @@ class MessageText:
 <b>ID Пользователя:</b> <code>{telegram_id}</code>
 <b>TAG Пользователя:</b> @{username}
 '''
+    REFERRAL_ACCOUNT_INFO = '''
+<b>▫️ В нашем боте действует партнёрская программа с дополнительными голосовыми сообщениями за каждое вступление по вашей ссылке.
+▪️ За каждого приглашенного пользователя, вы получаете +{referal_income} бесплатных голосовых.
+▫️ Ваша партнёрская ссылка:</b> {referral_link}
+
+<b>🗣 Пригласил всего:</b> {total_referrals}
+<b>🗣 Доступных голосовых за приглашения:</b> {referral_audio_attempt_left}
+<b>🗣 Всего получено голосовых за приглашения:</b> {referral_audio_attempt_total}
+'''
+    COMMAND_SYNTAX_ERROR = 'Убедитесь что вы правильно вели данные.'
+    BAN_USER_NOTIFICATION = '''
+<b>❌ Вы заблокированы до</b> {block_end_time}.
+<b>Причина:</b> {reason}.
+<b>Для разблокировки можете обратиться к администратору.</b>
+'''
+    PERMANENT_BLOCK_END_TIME = 'Без срочно'
+    USER_IS_NOT_EXIST = 'Пользователь не найден'
+    UNBAN_SUCCESSFUL = 'Пользователь <b>{telegram_id}</b> был успешно разблокирован'
+    BAN_SUCCESSFUL = 'Пользователь <b>{telegram_id}</b> был успешно заблокирован'
+    NO_VOICE_ATTEMPT = 'У вас закончились все попытки.'
+    VOICE_CHARACTERS_LACK = '<b>Голосовые функции станут доступны позже. Проводим техническое обновление.</b>'
+    VOICE_CHARACTERS_LACK_ADMIN = '<b>Квота исчерпана</b>'
+    GLOBAL_STATISTIC = '''
+<b>Количество пользователей:</b> {user_count}
+'''
+    GIVE_VOICE_PREMIUM = 'Отправьте Telegram ID'
+    GIVE_VOICE_PREMIUM_SUCCESSFUL = 'Пользователю <b>{telegram_id}</b> было выдано VOICE Premium'
+    REMOVE_VOICE_PREMIUM = 'Отправьте Telegram ID'
+    REMOVE_VOICE_PREMIUM_SUCCESSFUL = 'У пользователя <b>{telegram_id}</b> было убрано VOICE Premium'

@@ -11,14 +11,18 @@ from mutagen.oggopus import OggOpus
 from pydub import AudioSegment
 
 from bot.config import MessageText, BASE_DIR
+from bot.database.models.user import UserController, User
 from bot.fsm.user import UserState
 from bot.handlers.user.start import start_handler
 from bot.keyboards.reply.choose_voice_type import choose_voice_type_reply_markup, ChooseVoiceTypeReplyButtonText
 from bot.keyboards.reply.welcome import WelcomeReplyButtonText, welcome_reply_markup
-from bot.misc.util import get_reply_chat_id, convert_text_to_speech, convert_speech_to_speech, get_telegram_users, \
-    add_audio_processed_count, copy_message_to_admins, send_voice_reply, send_message_to_admins
+from bot.middleware.voice import VoiceUserPermissionMiddleware, VoiceClientMiddleware
+from bot.misc.util import get_reply_chat_id, convert_text_to_speech, convert_speech_to_speech, copy_message_to_admins, \
+    send_voice_reply, send_message_to_admins
 
 voice_router = Router()
+voice_router.message.outer_middleware(VoiceClientMiddleware())
+voice_router.message.outer_middleware(VoiceUserPermissionMiddleware())
 
 
 @voice_router.message(StateFilter(UserState.PROCESSING_VOICE, UserState.PICKED_WOMAN_VOICE),
@@ -55,8 +59,9 @@ async def picked_woman_voice_type_handler(message: Message, state: FSMContext):
 
 
 @voice_router.message(StateFilter(UserState.PROCESSING_VOICE), or_f(F.text, F.voice))
-async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext):
+async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext, user: User):
     data = await state.get_data()
+    await UserController.subtract_voice_attempt(user.telegram_id)
 
     if data['voice_type'] == ChooseVoiceTypeReplyButtonText.TEXT_TYPE and message.text:
         voice = bytes()
@@ -80,6 +85,7 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
                                voice_file=voice_file,
                                message=message,
                                bot=bot)
+
         return
 
     if data['voice_type'] == ChooseVoiceTypeReplyButtonText.VOICE_TYPE and message.voice:
@@ -114,9 +120,7 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
                                voice_file=processed_voice_file,
                                message=message,
                                bot=bot)
-        await add_audio_processed_count(message.from_user.id)
+        await UserController.add_audio_processed_count(user.telegram_id)
         await message.answer_voice(voice=processed_voice_file, reply_markup=welcome_reply_markup.get_markup())
         await state.clear()
         return
-
-    await message.answer('ERORRO', welcome_reply_markup.get_markup())

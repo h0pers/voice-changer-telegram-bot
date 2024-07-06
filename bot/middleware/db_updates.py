@@ -1,6 +1,8 @@
 from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message, CallbackQuery
+from sqlalchemy.exc import NoResultFound
+from sqlalchemy import select
 
 from bot.database.main import SessionLocal
 from bot.database.methods.update import update_or_create
@@ -39,8 +41,6 @@ async def collect_user_data(message: Message) -> None:
                                },
                                telegram_id=message.from_user.id
                                )
-        print((await get(session, User)).scalars().all())
-        print('asdasd')
         await session.commit()
 
 
@@ -68,6 +68,15 @@ class CollectData(BaseMiddleware):
             event: TelegramObject,
             data: Dict[str, Any]
     ) -> Any:
+        async with SessionLocal.begin() as session:
+            query = select(User).where(User.telegram_id == event.from_user.id)
+            statement = await session.execute(query)
+            try:
+                statement.scalar_one()
+                data.update({'is_new_user': False})
+            except NoResultFound:
+                data.update({'is_new_user': True})
+
         await collect_user_data(event)
         data.update(await get_additional_data(event))
         result = await handler(event, data)

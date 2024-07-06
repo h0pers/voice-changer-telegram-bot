@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 
 from typing import List
@@ -7,12 +8,20 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramRetryAfter
 from aiogram.types import Message, InputFile
 from elevenlabs.client import AsyncElevenLabs
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from bot.config import DEFAULT_VOICE_MODEL, MessageText, DEFAULT_VOICE_SPEECH_MODEL
 from bot.database.main import SessionLocal
 from bot.database.models.config import Settings
-from bot.database.models.user import User
+from bot.database.models.user import User, UserController
+
+
+async def get_users_amount() -> int:
+    async with SessionLocal.begin() as session:
+        query = select(func.count()).select_from(User)
+        statement = await session.execute(query)
+
+    return statement.scalar()
 
 
 async def convert_text_to_speech(text: str):
@@ -88,15 +97,11 @@ async def get_telegram_users(**kwargs) -> List[int]:
         return statement.scalars().all()
 
 
-async def change_user_status(telegram_id: int, status: bool):
-    async with SessionLocal.begin() as session:
-        query = select(User).where(User.telegram_id == telegram_id)
-        statement = await session.execute(query)
-        user = statement.scalar_one()
-        user.is_active = status
-
-
 async def send_newsletter(chat_id: int, message: Message, bot: Bot) -> bool:
+    async with SessionLocal.begin() as session:
+        query = select(User).where(User.telegram_id == chat_id)
+        statement = await session.execute(query)
+        user = statement.scalar()
     try:
         await bot.copy_message(
             chat_id=chat_id,
@@ -108,20 +113,12 @@ async def send_newsletter(chat_id: int, message: Message, bot: Bot) -> bool:
         await asyncio.sleep(e.retry_after)
         await send_newsletter(chat_id, message, bot)
     except Exception as e:
-        print(e)
-        await change_user_status(chat_id, False)
+        logging.exception(e)
+        await UserController.change_user_status(user.telegram_id, False)
         return False
 
-    await change_user_status(chat_id, True)
+    await UserController.change_user_status(user.telegram_id, True)
     return True
-
-
-async def add_audio_processed_count(telegram_id: int):
-    async with SessionLocal.begin() as session:
-        query = select(User).where(User.telegram_id == telegram_id)
-        statement = await session.execute(query)
-        user = statement.scalar_one()
-        user.audio_processed_count += 1
 
 
 async def start_newsletter(message: Message, bot: Bot) -> dict:
