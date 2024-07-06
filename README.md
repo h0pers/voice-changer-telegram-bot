@@ -12,7 +12,7 @@ To run this project, you will need to add the following environment variables to
 
 `TELEGRAM_ADMIN_ID` - > Write here all admins telelgram ids, use , to add more than one.
 
-`TZ=Europe/Kyiv` -> TimeZone
+`TIMEZONE=Europe/Kyiv` -> TimeZone
 
 `REDIS_HOST=redis` -> Redis host (Ussualy use the name of redis image in docker-compose.yml file)
 
