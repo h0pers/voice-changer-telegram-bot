@@ -62,6 +62,7 @@ async def picked_woman_voice_type_handler(message: Message, state: FSMContext):
 async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext, user: User):
     data = await state.get_data()
     await UserController.subtract_voice_attempt(user.telegram_id)
+    await UserController.add_audio_processed_count(user.telegram_id)
 
     if data['voice_type'] == ChooseVoiceTypeReplyButtonText.TEXT_TYPE and message.text:
         voice = bytes()
@@ -120,7 +121,6 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
                                voice_file=processed_voice_file,
                                message=message,
                                bot=bot)
-        await UserController.add_audio_processed_count(user.telegram_id)
         await message.answer_voice(voice=processed_voice_file, reply_markup=welcome_reply_markup.get_markup())
         await state.clear()
         return
