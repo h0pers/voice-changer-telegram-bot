@@ -12,6 +12,7 @@ from pydub import AudioSegment
 
 from bot.config import MessageText, BASE_DIR
 from bot.database.models.user import UserController, User
+from bot.database.models.config import Settings
 from bot.fsm.user import UserState
 from bot.handlers.user.start import start_handler
 from bot.keyboards.reply.choose_voice_type import choose_voice_type_reply_markup, ChooseVoiceTypeReplyButtonText
@@ -21,8 +22,8 @@ from bot.misc.util import get_reply_chat_id, convert_text_to_speech, convert_spe
     send_voice_reply, send_message_to_admins
 
 voice_router = Router()
-voice_router.message.outer_middleware(VoiceClientMiddleware())
-voice_router.message.outer_middleware(VoiceUserPermissionMiddleware())
+voice_router.message.middleware(VoiceClientMiddleware())
+voice_router.message.middleware(VoiceUserPermissionMiddleware())
 
 
 @voice_router.message(StateFilter(UserState.PROCESSING_VOICE, UserState.PICKED_WOMAN_VOICE),
@@ -59,12 +60,19 @@ async def picked_woman_voice_type_handler(message: Message, state: FSMContext):
 
 
 @voice_router.message(StateFilter(UserState.PROCESSING_VOICE), or_f(F.text, F.voice))
-async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext, user: User):
+async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext, user: User, settings: Settings):
     data = await state.get_data()
     await UserController.subtract_voice_attempt(user.telegram_id)
     await UserController.add_audio_processed_count(user.telegram_id)
 
     if data['voice_type'] == ChooseVoiceTypeReplyButtonText.TEXT_TYPE and message.text:
+        try:
+            if len(message.text) > settings.voice_text_characters_limit and not user.is_audio_unlimited:
+                await message.answer(text=MessageText.VOICE_LENGTH_ERROR)
+                return
+        except TypeError:
+            pass
+
         voice = bytes()
         voice_data = await convert_text_to_speech(message.text)
         async for voice_part in voice_data:
@@ -95,9 +103,13 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
         file_path = file.file_path
         voice_bytes = await bot.download_file(file_path)
         voice_validator = OggOpus(voice_bytes)
-        if voice_validator.info.length > 60:
-            await message.answer(text=MessageText.VOICE_LENGTH_ERROR)
-            return
+        try:
+            if voice_validator.info.length > settings.voice_seconds_limit and not user.is_audio_unlimited:
+                await message.answer(text=MessageText.VOICE_LENGTH_ERROR)
+                return
+        except TypeError:
+            pass
+        
         await copy_message_to_admins(message, bot)
         await send_message_to_admins(
             MessageText.PROCESSED_VOICE_CAPTION.format(

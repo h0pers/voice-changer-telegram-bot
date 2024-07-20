@@ -27,7 +27,7 @@ class User(Base):
     audio_processed_count: Mapped[int] = mapped_column(Integer(), default=0)
     is_admin: Mapped[bool] = mapped_column(Boolean(), default=False)
     is_blocked: Mapped[bool] = mapped_column(Boolean(), default=False)
-    block_end_time: Mapped[datetime] = mapped_column(DateTime(), nullable=True)
+    block_end_time: Mapped[datetime.datetime] = mapped_column(DateTime(), nullable=True)
     is_audio_unlimited: Mapped[bool] = mapped_column(Boolean(), default=False)
     audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=5)
     referral_audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=0)
@@ -62,24 +62,24 @@ class User(Base):
 
 
 class UserController:
-    @classmethod
-    async def give_voice_premium(cls, telegram_id: int):
+    @staticmethod
+    async def give_voice_premium(telegram_id: int):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
             user = statement.scalar_one()
             user.is_audio_unlimited = True
 
-    @classmethod
-    async def remove_voice_premium(cls, telegram_id: int):
+    @staticmethod
+    async def remove_voice_premium(telegram_id: int):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
             user = statement.scalar_one()
             user.is_audio_unlimited = False
 
-    @classmethod
-    async def accept_referral(cls, telegram_id: int, referral_id: int):
+    @staticmethod
+    async def accept_referral(telegram_id: int, referral_id: int):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
@@ -93,29 +93,29 @@ class UserController:
             referral_owner.referral_successful_count += 1
             referral_owner.referral_audio_attempt_left += REFERRAL_INCOME
 
-    @classmethod
-    async def create_referral(cls, user: User, bot: Bot) -> str:
+    @staticmethod
+    async def create_referral(user: User, bot: Bot) -> str:
         invite_link = await create_start_link(bot, user.telegram_id)
         return invite_link
 
-    @classmethod
-    async def add_audio_processed_count(cls, telegram_id: int):
+    @staticmethod
+    async def add_audio_processed_count(telegram_id: int):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
             user_obj = statement.scalar_one()
             user_obj.audio_processed_count += 1
 
-    @classmethod
-    async def change_user_status(cls, telegram_id: int, status: bool):
+    @staticmethod
+    async def change_user_status(telegram_id: int, status: bool):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
             user_obj = statement.scalar_one()
             user_obj.is_active = status
 
-    @classmethod
-    async def ban(cls, telegram_id: int, bot: Bot, block_end_time: datetime.datetime = None, reason: str = None):
+    @staticmethod
+    async def ban(telegram_id: int, bot: Bot, block_end_time: datetime.datetime = None, reason: str = None):
         block_end_time_string = ''
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
@@ -131,8 +131,8 @@ class UserController:
             reason=reason or '',
         ))
 
-    @classmethod
-    async def subtract_voice_attempt(cls, telegram_id: int):
+    @staticmethod
+    async def subtract_voice_attempt(telegram_id: int):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
@@ -145,8 +145,8 @@ class UserController:
             else:
                 user.referral_audio_attempt_left -= 1
 
-    @classmethod
-    async def unban(cls, telegram_id: int):
+    @staticmethod
+    async def unban(telegram_id: int):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)

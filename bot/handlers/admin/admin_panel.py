@@ -4,8 +4,10 @@ from aiogram.types import Message
 from aiogram.filters import Command, StateFilter
 from sqlalchemy.exc import NoResultFound
 
+from bot.handlers.cancel import cancel_handler
 from bot.config import MessageText
 from bot.database.models.user import UserController, User
+from bot.database.models.config import SettingsManager, VoiceTypeLimit, TextTypeLimit
 from bot.fsm.admin import AdminState
 from bot.keyboards.reply.admin.panel import admin_panel_reply_markup, AdminPanelTypeReplyButtonText
 from bot.misc.util import get_voice_api_characters, start_newsletter, change_voice_api, change_voice_reply_chat_id, \
@@ -15,7 +17,8 @@ admin_panel_router = Router()
 
 
 @admin_panel_router.message(Command(commands=['adminka']))
-async def admin_panel_handler(message: Message):
+async def admin_panel_handler(message: Message, state: FSMContext):
+    await cancel_handler(message, state)
     await message.answer(text=MessageText.ADMIN_PANEL_WELCOME, reply_markup=admin_panel_reply_markup.get_markup())
 
 
@@ -123,4 +126,30 @@ async def start_newsletter_handler(message: Message, bot: Bot, state: FSMContext
         finish_time=newsletter_stats.get('finish_time'),
         users_amount=newsletter_stats.get('amount'),
     ))
+    await state.clear()
+
+
+@admin_panel_router.message(StateFilter(None), F.text == AdminPanelTypeReplyButtonText.CHANGE_VOICE_LIMIT)
+async def change_voice_limit_handler(message: Message, bot: Bot, state: FSMContext):
+    await message.answer(text=MessageText.CHANGE_VOICE_LIMIT)
+    await state.set_state(AdminState.CHANGE_VOICE_LIMIT)
+
+
+@admin_panel_router.message(StateFilter(AdminState.CHANGE_VOICE_LIMIT), F.text.regexp('^-?\d*\.{0,1}\d+$'))
+async def set_voice_limit_handler(message: Message, bot: Bot, state: FSMContext):
+    await SettingsManager.set_voice_limit(voice_type=VoiceTypeLimit.voice_type, limit=int(message.text))
+    await message.answer(text=MessageText.CHANGE_LIMIT_SUCCESSFUL)
+    await state.clear()
+
+
+@admin_panel_router.message(StateFilter(None), F.text == AdminPanelTypeReplyButtonText.CHANGE_TEXT_LIMIT)
+async def change_text_limit_handler(message: Message, bot: Bot, state: FSMContext):
+    await message.answer(text=MessageText.CHANGE_TEXT_LIMIT)
+    await state.set_state(AdminState.CHANGE_TEXT_LIMIT)
+    
+
+@admin_panel_router.message(StateFilter(AdminState.CHANGE_TEXT_LIMIT), F.text.regexp('^-?\d*\.{0,1}\d+$'))
+async def set_text_limit_handler(message: Message, bot: Bot, state: FSMContext):
+    await SettingsManager.set_voice_limit(voice_type=TextTypeLimit.voice_type, limit=int(message.text))
+    await message.answer(text=MessageText.CHANGE_LIMIT_SUCCESSFUL)
     await state.clear()

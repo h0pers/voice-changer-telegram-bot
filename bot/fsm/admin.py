@@ -8,3 +8,5 @@ class AdminState(StatesGroup):
     SETUP_VOICE_REPLY_CHAT = State()
     GIVE_VOICE_PREMIUM = State()
     REMOVE_VOICE_PREMIUM = State()
+    CHANGE_VOICE_LIMIT = State()
+    CHANGE_TEXT_LIMIT = State()

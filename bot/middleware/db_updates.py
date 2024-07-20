@@ -6,24 +6,29 @@ from sqlalchemy import select
 
 from bot.database.main import SessionLocal
 from bot.database.methods.update import update_or_create
-from bot.database.models.main import User
+from bot.database.models.main import User, Settings
 from bot.database.methods.get import get
 
 
 async def get_additional_data(message: Message) -> dict:
     async with SessionLocal.begin() as session:
         user = (await get(session, User, telegram_id=message.from_user.id)).scalar()
+        settings = (await get(session, Settings)).scalar()
+        
     return {
         'user': user,
+        'settings': settings,
     }
 
 
 async def get_additional_callback_data(query: CallbackQuery) -> dict:
     async with SessionLocal.begin() as session:
         user = (await get(session, User, telegram_id=query.from_user.id)).scalar()
+        settings = (await get(session, Settings)).scalar()
 
     return {
         'user': user,
+        'settings': settings,
     }
 
 
