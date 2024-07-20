@@ -21,7 +21,7 @@ services:
       - "${MYSQL_PORT}:${MYSQL_PORT}"
   bot:
     build: .
-    command: sh -c "python -m run"
+    command: sh -c "alembic upgrade head && python -m run"
     env_file:
       - .env
     restart: always
