@@ -1,13 +1,10 @@
 import os
 
 from pytz import timezone
-from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
-
-DB_URL = conn_url = f'mysql+aiomysql://root:{os.getenv("MYSQL_ROOT_PASSWORD")}@{os.getenv("MYSQL_HOST")}/{os.getenv("MYSQL_DATABASE")}'
+DB_URL = f'mysql+aiomysql://root:{os.getenv("MYSQL_ROOT_PASSWORD")}@{os.getenv("MYSQL_HOST")}/{os.getenv("MYSQL_DATABASE")}'
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
@@ -19,7 +16,7 @@ DEFAULT_VOICE_MODEL = 'eleven_multilingual_v2'
 
 DEFAULT_VOICE_SPEECH_MODEL = 'eleven_multilingual_sts_v2'
 
-TIMEZONE = timezone(os.getenv('TIMEZONE'))
+TIMEZONE = timezone('Europe/Dublin')
 
 DAILY_AUDIO_ATTEMPT = 5
 
@@ -56,10 +53,10 @@ class MessageText:
 '''
     SPEECH_CONVERTING_WELCOME = '''
 <b>Вы выбрали конвертацию с помощью голоса.</b>
-Отправьте голосовое сообщение боту (до 60 секунд) и получите готовый вариант.
+Отправьте голосовое сообщение боту и получите готовый вариант.
 '''
     CANCEL_SUCCESSFUL = 'Успешная отмена.'
-    VOICE_LENGTH_ERROR = 'Длина голосового сообщение не должна превышать 60 секунд.'
+    VOICE_LENGTH_ERROR = 'Вы вышли за рамки допустимого лимита, попробуйте уменьшить содержимое'
     USER_ACCOUNT_STATS = '''
 <b>👨‍💼 Ваш личный кабинет</b>
 
@@ -119,3 +116,6 @@ class MessageText:
     GIVE_VOICE_PREMIUM_SUCCESSFUL = 'Пользователю <b>{telegram_id}</b> было выдано VOICE Premium'
     REMOVE_VOICE_PREMIUM = 'Отправьте Telegram ID'
     REMOVE_VOICE_PREMIUM_SUCCESSFUL = 'У пользователя <b>{telegram_id}</b> было убрано VOICE Premium'
+    CHANGE_VOICE_LIMIT = 'Установите лимит голосового'
+    CHANGE_TEXT_LIMIT = 'Установите лимит символов'
+    CHANGE_LIMIT_SUCCESSFUL = 'Лимит успешно изменен'
