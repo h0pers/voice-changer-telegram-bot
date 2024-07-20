@@ -3,7 +3,6 @@ import os
 from pytz import timezone
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
 DB_URL = f'mysql+aiomysql://root:{os.getenv("MYSQL_ROOT_PASSWORD")}@{os.getenv("MYSQL_HOST")}/{os.getenv("MYSQL_DATABASE")}'
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -16,7 +15,7 @@ DEFAULT_VOICE_MODEL = 'eleven_multilingual_v2'
 
 DEFAULT_VOICE_SPEECH_MODEL = 'eleven_multilingual_sts_v2'
 
-TIMEZONE = timezone('Europe/Dublin')
+TIMEZONE = timezone(os.getenv('TIMEZONE'))
 
 DAILY_AUDIO_ATTEMPT = 5
 
