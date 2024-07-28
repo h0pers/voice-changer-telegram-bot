@@ -8,10 +8,11 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from dotenv import load_dotenv
 
-from bot.config import DB_URL, BASE_DIR
-
+BASE_DIR = os.getcwd()
 
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
+
+from bot.config import DB_URL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,9 +26,11 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+from bot.database.models.main import *
+from bot.database.main import Base
+
+target_metadata = Base.metadata
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

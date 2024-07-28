@@ -3,6 +3,7 @@ import os
 from pytz import timezone
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 DB_URL = f'mysql+aiomysql://root:{os.getenv("MYSQL_ROOT_PASSWORD")}@{os.getenv("MYSQL_HOST")}/{os.getenv("MYSQL_DATABASE")}'
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')

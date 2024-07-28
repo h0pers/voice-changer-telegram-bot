@@ -21,13 +21,16 @@ services:
       - "${MYSQL_PORT}:${MYSQL_PORT}"
   bot:
     build: .
-    command: sh -c "alembic upgrade head && python -m run"
+    command: sh -c "python -m run"
     env_file:
       - .env
     restart: always
+    volumes:
+      - migrations:/app/bot/database/migrations/versions
     depends_on:
       - db
       - redis
 
 volumes:
+  migrations:
   my-db:
