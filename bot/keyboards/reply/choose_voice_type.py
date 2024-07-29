@@ -1,9 +1,9 @@
 from aiogram.types import KeyboardButton
 
-from bot.keyboards.reply.main import Reply
+from bot.keyboards.reply.main import Reply, ReplyButtonText
 
 
-class ChooseVoiceTypeReplyButtonText:
+class ChooseVoiceTypeReplyButtonText(ReplyButtonText):
     TEXT_TYPE = 'Текст'
     VOICE_TYPE = 'Голосовое'
     BACK = '↩️ Назад'

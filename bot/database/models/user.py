@@ -17,7 +17,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(32), nullable=True)
     first_name: Mapped[str] = mapped_column(String(64))
     last_name: Mapped[str] = mapped_column(String(64), nullable=True)
-    is_premium: Mapped[bool]
+    telegram_premium: Mapped[bool]
     language_code: Mapped[str] = mapped_column(String(35))
     registration_date: Mapped[datetime.datetime] = mapped_column(DateTime(), server_default=func.now())
     last_activity_date: Mapped[datetime.datetime] = mapped_column(DateTime(),
@@ -29,13 +29,14 @@ class User(Base):
     is_blocked: Mapped[bool] = mapped_column(Boolean(), default=False)
     block_end_time: Mapped[datetime.datetime] = mapped_column(DateTime(), nullable=True)
     is_audio_unlimited: Mapped[bool] = mapped_column(Boolean(), default=False)
+    audio_unlimited_end_time: Mapped[datetime.datetime] = mapped_column(DateTime(), nullable=True)
     audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=5)
     referral_audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=0)
     referral_successful_count: Mapped[int] = mapped_column(Integer(), default=0)
     referral_friend_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=True)
     referral_friends = relationship("User", backref="referred_by", remote_side=[id])
 
-    @validates('block_end_time')
+    @validates('block_end_time', 'audio_unlimited_end_time')
     def validate_datetime_in_future(self, key, value: datetime.datetime):
         if value is None:
             return value
@@ -63,12 +64,14 @@ class User(Base):
 
 class UserController:
     @staticmethod
-    async def give_voice_premium(telegram_id: int):
+    async def give_voice_premium(telegram_id: int, premium_end_time: datetime.datetime = None):
         async with SessionLocal.begin() as session:
             query = select(User).where(User.telegram_id == telegram_id)
             statement = await session.execute(query)
             user = statement.scalar_one()
             user.is_audio_unlimited = True
+            if premium_end_time:
+                user.audio_unlimited_end_time = premium_end_time
 
     @staticmethod
     async def remove_voice_premium(telegram_id: int):
@@ -77,6 +80,7 @@ class UserController:
             statement = await session.execute(query)
             user = statement.scalar_one()
             user.is_audio_unlimited = False
+            user.audio_unlimited_end_time = None
 
     @staticmethod
     async def accept_referral(telegram_id: int, referral_id: int):

@@ -1,9 +1,9 @@
 from aiogram.types import KeyboardButton
 
-from bot.keyboards.reply.main import Reply
+from bot.keyboards.reply.main import Reply, ReplyButtonText
 
 
-class AdminPanelTypeReplyButtonText:
+class AdminPanelTypeReplyButtonText(ReplyButtonText):
     CHANGE_VOICE_API_KEY = 'VOICE API ⚒️'
     VOICE_API_CHARACTERS_LEFT = 'API Статистика 📊'
     GLOBAL_STATISTIC = 'Статистика 📊'
@@ -32,14 +32,14 @@ give_voice_premium = KeyboardButton(text=AdminPanelTypeReplyButtonText.GIVE_VOIC
 
 remove_voice_premium = KeyboardButton(text=AdminPanelTypeReplyButtonText.REMOVE_VOICE_PREMIUM)
 
-chnage_voice_limit = KeyboardButton(text=AdminPanelTypeReplyButtonText.CHANGE_VOICE_LIMIT)
+change_voice_limit = KeyboardButton(text=AdminPanelTypeReplyButtonText.CHANGE_VOICE_LIMIT)
 
-chnage_text_limit = KeyboardButton(text=AdminPanelTypeReplyButtonText.CHANGE_TEXT_LIMIT)
+change_text_limit = KeyboardButton(text=AdminPanelTypeReplyButtonText.CHANGE_TEXT_LIMIT)
 
 admin_panel_reply_markup = Reply([
     [change_voice_api_key, change_voice_id],
     [newsletter, change_voice_reply_chat],
     [give_voice_premium, remove_voice_premium],
-    [chnage_voice_limit, chnage_text_limit],
+    [change_voice_limit, change_text_limit],
     [statistic, voice_id_characters_left],
 ])

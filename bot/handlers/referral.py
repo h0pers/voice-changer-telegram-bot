@@ -8,7 +8,7 @@ from bot.handlers.user.start import start_handler
 referral_router = Router()
 
 
-@referral_router.message(CommandStart(deep_link=True), F.chat.type == 'private')
+@referral_router.message(CommandStart(deep_link=True))
 async def referral_handler(message: Message, command: CommandObject, user: User, is_new_user: bool):
     referral_user = {
         "telegram_id": int(command.args)
