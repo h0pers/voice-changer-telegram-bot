@@ -1,5 +1,6 @@
 import os
 
+from iso4217 import Currency
 from pytz import timezone
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -25,6 +26,8 @@ VOICE_CHARACTERS_MIN_REQUIRED = 500
 REFERRAL_INCOME = 3
 
 STRFTIME_DEFAULT_FORMAT = '%d.%m.%Y, %H:%M'
+
+DEFAULT_CURRENCY = Currency('USD')
 
 
 class MessageText:
