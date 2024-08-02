@@ -1,7 +1,9 @@
 from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
+from datetime import datetime
 
+from bot.config import TIMEZONE
 from bot.database.main import SessionLocal
 from bot.database.methods.update import update_or_create
 from bot.database.models.main import User, Settings
@@ -25,6 +27,7 @@ class GatherInformationMiddleware(BaseMiddleware):
                                        'last_name': event.from_user.last_name,
                                        'telegram_premium': event.from_user.is_premium or False,
                                        'language_code': event.from_user.language_code,
+                                       'last_activity_date': datetime.now(tz=TIMEZONE),
                                    },
                                    telegram_id=event.from_user.id
                                    )
