@@ -13,7 +13,7 @@ from bot.database.main import Base, SessionLocal
 class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    telegram_id = mapped_column(BigInteger())
+    telegram_id = mapped_column(BigInteger(), unique=True)
     username: Mapped[str] = mapped_column(String(32), nullable=True)
     first_name: Mapped[str] = mapped_column(String(64))
     last_name: Mapped[str] = mapped_column(String(64), nullable=True)

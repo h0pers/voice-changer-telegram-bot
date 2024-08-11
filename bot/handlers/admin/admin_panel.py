@@ -118,8 +118,8 @@ async def setup_newsletter_handler(message: Message, state: FSMContext):
 
 @admin_panel_router.message(StateFilter(AdminState.SETUP_NEWSLETTER))
 async def start_newsletter_handler(message: Message, bot: Bot, state: FSMContext):
-    newsletter_stats = await start_newsletter(message, bot)
     await message.answer(text=MessageText.NEWSLETTER_START)
+    newsletter_stats = await start_newsletter(message, bot)
     await message.answer(text=MessageText.NEWSLETTER_FINISH.format(
         successful_executed=newsletter_stats.get('successful_executed'),
         unsuccessful_executed=newsletter_stats.get('unsuccessful_executed'),
