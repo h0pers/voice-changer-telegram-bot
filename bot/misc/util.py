@@ -130,7 +130,7 @@ async def start_newsletter(message: Message, bot: Bot) -> dict:
             successful_executed += 1
         await asyncio.sleep(0.05)
 
-    finish_time = timedelta(seconds=round(start_time - time.time()))
+    finish_time = timedelta(seconds=round(time.time() - start_time))
     return {
         'successful_executed': successful_executed,
         'unsuccessful_executed': len(telegram_ids) - successful_executed,
