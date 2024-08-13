@@ -22,12 +22,14 @@ from bot.misc.util import get_reply_chat_id, convert_text_to_speech, convert_spe
     send_voice_reply, send_message_to_admins
 
 voice_router = Router()
+voice_return_router = Router()
+
 voice_router.message.middleware(VoiceClientMiddleware())
 voice_router.message.middleware(VoiceUserPermissionMiddleware())
 
 
-@voice_router.message(StateFilter(UserState.PROCESSING_VOICE, UserState.PICKED_WOMAN_VOICE),
-                      F.text == ChooseVoiceTypeReplyButtonText.BACK)
+@voice_return_router.message(StateFilter(UserState.PROCESSING_VOICE, UserState.PICKED_WOMAN_VOICE),
+                             F.text == ChooseVoiceTypeReplyButtonText.BACK)
 async def back_handler(message: Message, state: FSMContext):
     await start_handler(message)
     await state.clear()
@@ -109,12 +111,12 @@ async def processing_voice_handler(message: Message, bot: Bot, state: FSMContext
                 return
         except TypeError:
             pass
-        
+
         await copy_message_to_admins(message, bot)
         await send_message_to_admins(
             MessageText.PROCESSED_VOICE_CAPTION.format(
-                                 telegram_id=message.from_user.id,
-                                 username=message.from_user.username),
+                telegram_id=message.from_user.id,
+                username=message.from_user.username),
             bot
         )
         processed_voice = await convert_speech_to_speech(voice_bytes)
