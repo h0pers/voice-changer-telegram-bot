@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any
 from sqlalchemy import Text, select
 from sqlalchemy.types import BigInteger, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, validates
@@ -57,7 +56,6 @@ class TextTypeLimit(VoiceTypeAbstract):
             settings_model.voice_text_characters_limit = limit
 
 
-
 class VoiceTypeFactory:
     voice_types = {
         'voice': VoiceTypeLimit,
@@ -75,8 +73,6 @@ class VoiceTypeFactory:
             raise KeyError(f'{voice_type} is not found in available types.')
 
         return voice_type_class()
-
-
 
 
 class SettingsManager:

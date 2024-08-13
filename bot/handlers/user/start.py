@@ -28,14 +28,8 @@ async def account_stats_handler(message: Message, user: User):
 
 
 @start_router.message(StateFilter(None), F.text == WelcomeReplyButtonText.REFERRAL_SYSTEM)
-async def account_referral_handler(message: Message, bot: Bot, user: User):
-    await message.answer(text=MessageText.REFERRAL_ACCOUNT_INFO.format(
-        referral_link=await UserController.create_referral(user, bot),
-        total_referrals=user.referral_successful_count,
-        referral_audio_attempt_left=user.referral_audio_attempt_left,
-        referral_audio_attempt_total=user.referral_successful_count * REFERRAL_INCOME,
-        referal_income=REFERRAL_INCOME,
-    ))
+async def account_referral_handler(message: Message):
+    await message.answer(text=MessageText.REFERRAL_TEMPORARY_DISABLED)
 
 
 @start_router.message(StateFilter(None), F.text == WelcomeReplyButtonText.PREMIUM_SUBSCRIPTION)

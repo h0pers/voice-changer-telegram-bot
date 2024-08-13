@@ -6,7 +6,8 @@ from sqlalchemy import BigInteger, String, DateTime, Boolean, Integer, func, sel
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, validates, relationship
 
-from bot.config import REFERRAL_INCOME, MessageText, STRFTIME_DEFAULT_FORMAT, TIMEZONE
+from bot import config
+from bot.config import MessageText
 from bot.database.main import Base, SessionLocal
 
 
@@ -30,7 +31,7 @@ class User(Base):
     block_end_time: Mapped[datetime.datetime] = mapped_column(DateTime(), nullable=True)
     is_audio_unlimited: Mapped[bool] = mapped_column(Boolean(), default=False)
     audio_unlimited_end_time: Mapped[datetime.datetime] = mapped_column(DateTime(), nullable=True)
-    audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=5)
+    audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=config.DAILY_AUDIO_ATTEMPT)
     referral_audio_attempt_left: Mapped[int] = mapped_column(Integer(), default=0)
     referral_successful_count: Mapped[int] = mapped_column(Integer(), default=0)
     referral_friend_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=True)
@@ -41,7 +42,7 @@ class User(Base):
         if value is None:
             return value
 
-        if value <= datetime.datetime.now(TIMEZONE):
+        if value <= datetime.datetime.now(config.TIMEZONE):
             raise ValueError('The date have to be in the future.')
 
         return value
@@ -95,7 +96,7 @@ class UserController:
 
             user_obj.referral_friend_id = referral_owner.id
             referral_owner.referral_successful_count += 1
-            referral_owner.referral_audio_attempt_left += REFERRAL_INCOME
+            referral_owner.referral_audio_attempt_left += config.REFERRAL_INCOME
 
     @staticmethod
     async def create_referral(user: User, bot: Bot) -> str:
@@ -128,7 +129,7 @@ class UserController:
             user_obj.is_blocked = True
             if block_end_time is not None:
                 user_obj.block_end_time = block_end_time
-                block_end_time_string = block_end_time.strftime(STRFTIME_DEFAULT_FORMAT)
+                block_end_time_string = block_end_time.strftime(config.STRFTIME_DEFAULT_FORMAT)
 
         await bot.send_message(chat_id=user_obj.telegram_id, text=MessageText.BAN_USER_NOTIFICATION.format(
             block_end_time=block_end_time_string or MessageText.PERMANENT_BLOCK_END_TIME,
