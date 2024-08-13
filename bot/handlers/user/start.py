@@ -2,7 +2,6 @@ from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from datetime import datetime
 
 from bot.callback.subscription import SubscriptionCallback
 from bot.config import MessageText, REFERRAL_INCOME, STRFTIME_DEFAULT_FORMAT
