@@ -8,7 +8,7 @@ user_router = Router()
 
 
 def get_user_router() -> Router:
-    user_routers = (start_router, voice_router, voice_return_router,
+    user_routers = (start_router, voice_return_router, voice_router,
                     get_user_callback_router(),)
     user_router.include_routers(*user_routers)
 
